@@ -1032,6 +1032,8 @@ x: startPos.x * cellSize + cellSize / 2,
 y: startPos.y * cellSize + cellSize / 2,
 };
 createWorldElements();
+updateVisibleCells(true);
+render();
 updateHUD();
 gameLoopInterval = setInterval(gameTick, 1000);
 lastFrameTime = performance.now();
