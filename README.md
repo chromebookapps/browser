@@ -1,4 +1,2 @@
-# All Content
-Copyright (c) 2025 Johnny Heggelund. All rights reserved.
-Unauthorized copying or distribution is strictly prohibited.
-[Follow me for updates.](https://github.com/johnny-heggelund)
+# My Free PC Browser Games & Tools
+* [100 Laps is a challenging, top-down arcade racing game where the primary objective is to survive and complete 100 laps. To play, use the WASD or Arrow Keys to accelerate, brake, and steer your vehicle down a busy four-lane road, dodging numerous AI cars. Colliding with other cars or the side walls will decrease your "Life" percentage, and the game ends if your life drops to zero. A unique mechanic is the police: driving at a high speed (over 350) will attract a police car that spawns to chase you. If this police car catches you, your run is over. The game tracks your laps, time, and crash count, saving your best results to a local high-score list.](https://johnny-heggelund.github.io/100laps.html)
