@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Snake Neon</title>
+<script src="/stats/tracker.js" defer></script>
 <meta name="robots" content="noindex, nofollow">
 <style>
 :root {
@@ -85,7 +86,7 @@ display: flex;
 font-size: 5em;
 color: var(--border-color);
 text-shadow: 4px 4px var(--snake-head);
-margin-bottom: 30px;
+margin-bottom: 0;
 }
 .overlay h2 {
 font-size: 2.5em;
@@ -220,6 +221,7 @@ display: none !important;
 <canvas id="game-canvas"></canvas>
 <div id="start-screen" class="overlay visible">
 <h1>SNAKE</h1>
+<p>&copy;2025 Johnny Heggelund</p>
 <button id="start-button">START GAME</button>
 <button id="how-to-play-button">HOW TO PLAY</button>
 </div>
