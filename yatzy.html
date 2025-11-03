@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Yatzy</title>
+<script src="/stats/tracker.js" defer></script>
 <meta name="robots" content="noindex, nofollow">
 <style>
 :root {
@@ -381,7 +382,7 @@ font-size: 1.2em;
 }
 .modal-buttons {
 display: flex;
-gap: 20px;
+gap: 10px;
 justify-content: center;
 }
 .rules-content {
@@ -460,6 +461,7 @@ flex-grow: 1;
 <div id="start-modal" class="modal-overlay">
 <div class="modal-content">
 <h2 id="welcome-title"></h2>
+<p style="font-size: 0.9rem;">&copy;2025 Johnny Heggelund</p>
 <p id="mode-select-text"></p>
 <div class="modal-buttons">
 <button id="free-mode-btn" class="game-btn"></button>
@@ -494,11 +496,11 @@ flex-grow: 1;
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 const lang = {
-title: "Yatzy Dice Game Online",
+title: "Yatzy",
 rules: "Rules",
 mode: "Mode",
-freeChoice: "Free Choice",
-forcedOrder: "Forced Order",
+freeChoice: "Free",
+forcedOrder: "Forced",
 rollsLeft: "Rolls left",
 rollDice: "Roll Dice",
 finishTurn: "Finish Turn",

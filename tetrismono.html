@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tetris Mono</title>
+<script src="/stats/tracker.js" defer></script>
 <meta name="robots" content="noindex, nofollow">
 <style>
 :root {
@@ -42,7 +43,7 @@ z-index: 10;
 #start-screen h1 {
 font-size: 8vh;
 text-shadow: var(--text-shadow);
-margin-bottom: 4vh;
+margin: 0;
 }
 #start-button {
 font-family: 'Courier New', Courier, monospace;
@@ -119,6 +120,7 @@ opacity: 0.7;
 <body>
 <div id="start-screen">
 <h1>Monochrome Tetris</h1>
+<p>&copy;2025 Johnny Heggelund</p>
 <button id="start-button">Start Game</button>
 </div>
 <div class="game-container" style="visibility: hidden;">

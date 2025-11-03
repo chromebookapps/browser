@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Uno</title>
+<script src="/stats/tracker.js" defer></script>
 <meta name="robots" content="noindex, nofollow">
 <style>
 :root {
@@ -368,7 +369,7 @@ rulesTitle: "UNO Rules",
 rulesGoalTitle: "Objective:",
 rulesGoalText: "Be the first player to get rid of all your cards.",
 rulesHowToTitle: "How to Play",
-rulesHowToText: "You can play a card from your hand if it matches the color, number, or symbol of the card on top of the discard pile. If you can't play, you must draw a card from the deck. Good luck!",
+rulesHowToText: "You can play a card from your hand if it matches the color, number, or symbol of the card on top of the discard pile. If you can't play, you must draw a card from the deck. Good luck! (C) 2025 Johnny Heggelund",
 rulesSpecialTitle: "Special Cards",
 rulesSkip: "<strong>Skip (🚫):</strong> The next player misses their turn.",
 rulesReverse: "<strong>Reverse (🔄):</strong> The direction of play is reversed.",
@@ -701,7 +702,7 @@ aiHandEl.appendChild(cardElement);
 }
 function renderDiscardPile() {
 discardPileEl.innerHTML = '';
-const topCard = discardPile[discardFile.length - 1];
+const topCard = discardPile[discardPile.length - 1];
 if (topCard) {
 discardPileEl.className = 'card';
 discardPileEl.dataset.color = topCard.suit;
