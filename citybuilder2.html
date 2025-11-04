@@ -954,6 +954,8 @@ ctx.arc(midX, midY, dotR, 0, 2 * Math.PI);
 ctx.fill();
 }
 }
+
+
 function drawTrafficVariableSpeed(x, y, index, drawX, drawY, roadWear) {
 const north = y > 0 && world[index - config.gridSize].base === 'road';
 const south = y < config.gridSize - 1 && world[index + config.gridSize].base === 'road';
@@ -965,31 +967,28 @@ let animSpeed = 6000;
 if (roadWear === 2) animSpeed = 4000;
 else if (roadWear === 3) animSpeed = 2500;
 const animProgress1 = (Date.now() % animSpeed) / animSpeed;
-const animProgress2 = ((Date.now() + animSpeed / 2) % animSpeed) / animSpeed;
-ctx.fillStyle = '#FFFFFF';
+
+ctx.fillStyle = '#555';
+
 const pos1 = config.cellSize * animProgress1;
-const pos2 = config.cellSize * animProgress2;
 const centeredPos1Y = pos1 - (carLength / 2);
-const centeredPos2Y = pos2 - (carLength / 2);
 const centeredPos1X = pos1 - (carLength / 2);
-const centeredPos2X = pos2 - (carLength / 2);
+
 if (north || south) {
 const carXRight = Math.floor(drawX + config.cellSize / 2 + 2);
 const carYRight = Math.floor(drawY + centeredPos1Y);
-const carXLeft = Math.floor(drawX + config.cellSize / 2 - 2 - carBreadth);
-const carYLeft = Math.floor(drawY + centeredPos2Y);
+
 ctx.fillRect(carXRight, carYRight, carBreadth, carLength);
-ctx.fillRect(carXLeft, carYLeft, carBreadth, carLength);
 }
 if (east || west) {
 const carXBottom = Math.floor(drawX + centeredPos1X);
 const carYBottom = Math.floor(drawY + config.cellSize / 2 + 2);
-const carXTop = Math.floor(drawX + centeredPos2X);
-const carYTop = Math.floor(drawY + config.cellSize / 2 - 2 - carBreadth);
+
 ctx.fillRect(carXBottom, carYBottom, carLength, carBreadth);
-ctx.fillRect(carXTop, carYTop, carLength, carBreadth);
 }
 }
+
+
 function isPowerConnection(index) {
 if (index < 0 || index >= world.length) return false;
 const neighbor = world[index];
@@ -1642,14 +1641,16 @@ actionTaken = true;
 } else {
 alert("Not enough space for this 2x2 building!");
 }
+
 } else if (currentTool === 'road') {
-if (cell.base === 'grass' && !cell.building && !cell.hasPowerLine) {
+if (cell.base === 'grass' && !cell.building) {
 gameState.budget -= cost;
 cell.base = 'road';
 cell.roadWear = 0;
 cell.hasTraffic = false;
 actionTaken = true;
 }
+
 } else if (currentTool === 'power-line') {
 if (!cell.hasPowerLine && !cell.building && (cell.base === 'grass' || cell.base === 'road')) {
 gameState.budget -= cost;
