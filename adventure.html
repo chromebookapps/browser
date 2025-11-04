@@ -1132,6 +1132,8 @@ gameState.isGameOver = false;
 gameState.playerStatusBar = null;
 gameState.activeProjectiles = [];
 createWorldElements();
+updateVisibleCells(true);
+render();
 updateHUD();
 if (gameState.timeOfDay === 'night') {
 nightOverlay.classList.add('is-night');
