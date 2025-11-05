@@ -7,7 +7,7 @@ To **see** an updated list with direct links [Click here](https://hubjohnny.gith
 ## ⚖️ License
 This entire collection of browser games and tools is licensed under the **MIT License**.
 
-Feel free to use, modify, and distribute the code found in this repository, provided that the original copyright and license terms are included.
+Feel free to use, modify, and distribute the code found in this repository, provided that the **original copyright text in the apps and license terms are included**.
 
 View the full license text here: [LICENSE](LICENSE)
 
