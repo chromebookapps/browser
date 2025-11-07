@@ -1,4 +1,4 @@
-# Welcome to my Free PC Browser Games & Tools
+# Browser Apps for Chromebook users
 
 To **see** an updated list with direct links [Click here](https://hubjohnny.github.io/)
 
