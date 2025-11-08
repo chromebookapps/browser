@@ -606,8 +606,9 @@ const audioManager = {
     context: null,
     isInitialized: false,
     mainGain: null,
-    activeAmbiance: {}, // For å holde styr på loops (f.eks. vind)
+    activeAmbiance: {}, // For å holde styr på loops
     birdChirpTimer: null,
+    owlHootTimer: null, // NY EGENSKAP: For ugla
     soundCooldowns: {}, // For å "strupe" lyder
 
     init: function() {
@@ -625,6 +626,7 @@ const audioManager = {
     },
 
     sounds: {
+        // ... (Alle dine eksisterende lyder: tree_chop, item_pickup, etc...) ...
         'tree_chop': (ctx, dest) => {
             const bufferSize = ctx.sampleRate * 0.1;
             const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
@@ -858,70 +860,109 @@ const audioManager = {
             noise.start(t);
             noise.stop(t + 0.08);
         },
-
-        // --- NYE LYDER ---
         'gather_stone': (ctx, dest) => {
             const t = ctx.currentTime;
-            // En skarp "klikk"-lyd
             const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.05, ctx.sampleRate);
             const data = buffer.getChannelData(0);
             for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
             const noise = ctx.createBufferSource();
             noise.buffer = buffer;
-
             const filter = ctx.createBiquadFilter();
-            filter.type = 'highpass'; // Motsatt av "tasselyden"
-            filter.frequency.setValueAtTime(1500, t); // Høy frekvens for "klikk"
-            
+            filter.type = 'highpass';
+            filter.frequency.setValueAtTime(1500, t);
             const gain = ctx.createGain();
             gain.gain.setValueAtTime(0.3, t);
             gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
-            
             noise.connect(filter).connect(gain).connect(dest);
             noise.start(t);
             noise.stop(t + 0.05);
         },
         'gather_gem': (ctx, dest) => {
             const t = ctx.currentTime;
-            // En høy, "klingende" tone
             const osc = ctx.createOscillator();
             osc.type = 'sine';
             osc.frequency.setValueAtTime(2000, t);
             osc.frequency.linearRampToValueAtTime(2500, t + 0.1);
-
             const gain = ctx.createGain();
             gain.gain.setValueAtTime(0.2, t);
             gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
-            
             osc.connect(gain).connect(dest);
             osc.start(t);
             osc.stop(t + 0.1);
         },
         'gather_herb': (ctx, dest) => {
             const t = ctx.currentTime;
-            // Hvit støy for "rasling"
             const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.1, ctx.sampleRate);
             const data = buffer.getChannelData(0);
             for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
-            
             const noise = ctx.createBufferSource();
             noise.buffer = buffer;
-            
             const filter = ctx.createBiquadFilter();
-            filter.type = 'bandpass'; // Bare et tynt bånd av støy
+            filter.type = 'bandpass';
             filter.frequency.setValueAtTime(2500, t);
             filter.Q.setValueAtTime(10, t);
-
             const gain = ctx.createGain();
-            gain.gain.setValueAtTime(0.15, t); // Ganske lavt volum
+            gain.gain.setValueAtTime(0.15, t);
             gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
-            
             noise.connect(filter).connect(gain).connect(dest);
             noise.start(t);
             noise.stop(t + 0.1);
+        },
+        
+        // --- NYE LYDER ---
+        'night_ambiance': (ctx, dest) => {
+            const bufferSize = 2 * ctx.sampleRate;
+            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const output = buffer.getChannelData(0);
+            // Mørkere "brun" støy
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = (Math.random() * 2 - 1) * 0.3;
+                if (i > 0) output[i] = (output[i-1] + (0.08 * output[i])) / 1.08;
+            }
+            const noiseNode = ctx.createBufferSource();
+            noiseNode.buffer = buffer;
+            noiseNode.loop = true;
+            
+            const filter = ctx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(200, ctx.currentTime); // Mye dypere enn vinden
+            filter.Q.setValueAtTime(1, ctx.currentTime);
+
+            const lfo = ctx.createOscillator();
+            lfo.type = 'sine';
+            lfo.frequency.setValueAtTime(0.05, ctx.currentTime); // Mye tregere "whoosh"
+            const lfoGain = ctx.createGain();
+            lfoGain.gain.setValueAtTime(100, ctx.currentTime);
+
+            lfo.connect(lfoGain).connect(filter.frequency);
+            noiseNode.connect(filter).connect(dest);
+            lfo.start(ctx.currentTime);
+            noiseNode.start(ctx.currentTime);
+            return { lfo, noiseNode };
+        },
+        
+        'owl_hoot': (ctx, dest) => {
+            const t = ctx.currentTime;
+            const osc = ctx.createOscillator();
+            osc.type = 'sine'; // En myk "fløyte"-lyd
+            
+            // "Ho-ho"-lyden
+            osc.frequency.setValueAtTime(500, t);
+            osc.frequency.linearRampToValueAtTime(400, t + 0.2);
+            osc.frequency.setValueAtTime(450, t + 0.25);
+            osc.frequency.linearRampToValueAtTime(350, t + 0.45);
+
+            const gain = ctx.createGain();
+            gain.gain.setValueAtTime(0, t);
+            gain.gain.linearRampToValueAtTime(0.2, t + 0.05); // Litt myk start
+            gain.gain.setValueAtTime(0.2, t + 0.4);
+            gain.gain.linearRampToValueAtTime(0, t + 0.45); // Fade ut
+            
+            osc.connect(gain).connect(dest);
+            osc.start(t);
+            osc.stop(t + 0.5);
         }
         // --- SLUTT PÅ NYE LYDER ---
-
     },
 
     playSound: function(name) {
@@ -948,7 +989,9 @@ const audioManager = {
         const gain = this.context.createGain();
         gain.connect(this.mainGain);
         gain.gain.setValueAtTime(0, this.context.currentTime);
-        gain.gain.linearRampToValueAtTime(0.4, this.context.currentTime + 3);
+        // Vind er 0.4, natt-atmosfære er litt stillere på 0.3
+        const targetVolume = (name === 'wind_ambiance') ? 0.4 : 0.3;
+        gain.gain.linearRampToValueAtTime(targetVolume, this.context.currentTime + 3);
         const nodes = this.sounds[name](this.context, gain);
         this.activeAmbiance[name] = { ...nodes, gainNode: gain };
     },
@@ -973,7 +1016,7 @@ const audioManager = {
         console.log("Starter fuglelyder...");
         const birdSounds = ['bird_chirp_1', 'bird_chirp_2', 'bird_chirp_3'];
         const loop = () => {
-            const randomDelay = Math.random() * 10000 + 5000; 
+            const randomDelay = Math.random() * 10000 + 5000; // Hvert 5-15 sek
             this.birdChirpTimer = setTimeout(() => {
                 if (!this.isInitialized) return;
                 const soundName = birdSounds[Math.floor(Math.random() * birdSounds.length)];
@@ -990,7 +1033,44 @@ const audioManager = {
             clearTimeout(this.birdChirpTimer);
             this.birdChirpTimer = null;
         }
+    },
+    
+    // --- NYE FUNKSJONER ---
+    startNightSounds: function() {
+        if (!this.isInitialized) return;
+        
+        // Start natt-atmosfæren
+        this.startAmbiance('night_ambiance');
+
+        // Start ugle-timeren
+        if (this.owlHootTimer) return; // Ikke start hvis den allerede kjører
+        console.log("Starter uglelyder...");
+        
+        const loop = () => {
+            // Mye sjeldnere enn fuglene: Hvert 15-30 sek
+            const randomDelay = Math.random() * 15000 + 15000; 
+            
+            this.owlHootTimer = setTimeout(() => {
+                if (!this.isInitialized) return; 
+                this.playSound('owl_hoot');
+                loop(); 
+            }, randomDelay);
+        };
+        loop(); // Start loopen
+    },
+    
+    stopNightSounds: function() {
+        // Stopp natt-atmosfæren
+        this.stopAmbiance('night_ambiance');
+        
+        // Stopp ugle-timeren
+        if (this.owlHootTimer) {
+            console.log("Stopper uglelyder...");
+            clearTimeout(this.owlHootTimer);
+            this.owlHootTimer = null;
+        }
     }
+    // --- SLUTT PÅ NYE FUNKSJONER ---
 };
 
 
@@ -1399,112 +1479,115 @@ const instructions = `
 showMessage(instructions, () => { });
 }
 
+
+
 function setupNewGame() {
-if (gameLoopInterval) clearInterval(gameLoopInterval);
-if (mainGameLoopId) cancelAnimationFrame(mainGameLoopId);
-const oldPlayer = gameState.player;
-const currentLevel = gameState.level ? gameState.level + 1 : 1;
-const isUnderworld = currentLevel % 5 === 0 && currentLevel < 20;
-gameContainer.style.backgroundColor = isUnderworld ? '#2d2d3a' : '#2E7D32';
-if (isUnderworld) {
-initRainEffect(100);
+    if (gameLoopInterval) clearInterval(gameLoopInterval);
+    if (mainGameLoopId) cancelAnimationFrame(mainGameLoopId);
 
-audioManager.stopAmbiance('wind_ambiance');
-audioManager.stopBirdSounds();
+    // --- Rydd opp i ALLE lyder ---
+    audioManager.stopAmbiance('wind_ambiance');
+    audioManager.stopBirdSounds();
+    audioManager.stopNightSounds();
+    // --- Slutt på opprydding ---
 
+    const oldPlayer = gameState.player;
+    const currentLevel = gameState.level ? gameState.level + 1 : 1;
+    const isUnderworld = currentLevel % 5 === 0 && currentLevel < 20;
+    gameContainer.style.backgroundColor = isUnderworld ? '#2d2d3a' : '#2E7D32';
 
-
-
-} else {
-stopRainEffect();
-
-audioManager.startAmbiance('wind_ambiance');
-audioManager.startBirdSounds();
-
-
-
-
+    if (isUnderworld) {
+        initRainEffect(100);
+        // (Ingen atmosfære-lyd i underverden foreløpig, bare regn)
+    } else {
+        stopRainEffect();
+        // Nye level starter på dagtid, så start dag-lyder
+        audioManager.startAmbiance('wind_ambiance');
+        audioManager.startBirdSounds();
+    }
+    nightOverlay.classList.remove('is-night');
+    gameState = {
+        level: currentLevel,
+        isUnderworld: isUnderworld,
+        player: {
+            hp: 100,
+            maxHp: 100,
+            hasKey: false,
+            hasUnicornKey: false,
+            wood: 0,
+            stone: 0,
+            gems: 0,
+            herbs: 0,
+            arrows: 0,
+            inventory: ['unarmed'],
+            equippedWeapon: 'unarmed',
+            pos: {
+                x: Math.floor(WORLD_SIZE.cols / 2),
+                y: Math.floor(WORLD_SIZE.rows / 2)
+            },
+            pixelPos: {
+                x: 0,
+                y: 0
+            },
+        },
+        world: [],
+        monsters: [],
+        npcs: [],
+        resources: [],
+        time: 0,
+        timeOfDay: 'day', // Nye level starter alltid på dagen
+        isGameOver: false,
+        isFighting: false,
+        activeFighter: null,
+        monsterAttackInterval: null,
+        playerStatusBar: null,
+        activeProjectiles: [],
+    };
+    if (oldPlayer) {
+        gameState.player.strength = oldPlayer.strength;
+        gameState.player.xp = oldPlayer.xp;
+        gameState.player.xpForNextStrength = oldPlayer.xpForNextStrength;
+        gameState.player.inventory = oldPlayer.inventory || ['unarmed'];
+        gameState.player.equippedWeapon = oldPlayer.equippedWeapon || 'unarmed';
+        gameState.player.wood = oldPlayer.wood;
+        gameState.player.stone = oldPlayer.stone;
+        gameState.player.gems = oldPlayer.gems;
+        gameState.player.herbs = oldPlayer.herbs;
+        gameState.player.arrows = oldPlayer.arrows;
+    } else {
+        gameState.player.strength = 5;
+        gameState.player.xp = 0;
+        gameState.player.xpForNextStrength = 20;
+    }
+    gameState.levelConfig = {
+        shelterWoodCost: BASE_SHELTER_WOOD_COST + SHELTER_COST_WOOD_PER_LEVEL * (gameState.level - 1),
+        shelterHPCost: BASE_SHELTER_HP_COST + SHELTER_COST_HP_PER_LEVEL * (gameState.level - 1),
+        crossbowWoodCost: BASE_CROSSBOW_WOOD_COST + CROSSBOW_COST_WOOD_PER_LEVEL * (gameState.level - 1),
+        crossbowHPCost: BASE_CROSSBOW_HP_COST + CROSSBOW_COST_HP_PER_LEVEL * (gameState.level - 1),
+    };
+    if (currentLevel === 20) {
+        generateUnicornLevel();
+    } else if (isUnderworld) {
+        generateUnderworld();
+    } else {
+        generateRealisticWorld();
+    }
+    const startPos = gameState.player.pos;
+    gameState.player.pixelPos = {
+        x: startPos.x * cellSize + cellSize / 2,
+        y: startPos.y * cellSize + cellSize / 2,
+    };
+    createWorldElements();
+    updateVisibleCells(true);
+    render();
+    updateHUD();
+    gameLoopInterval = setInterval(gameTick, 1000);
+    lastFrameTime = performance.now();
+    mainGameLoopId = requestAnimationFrame(mainGameLoop);
 }
-nightOverlay.classList.remove('is-night');
-gameState = {
-level: currentLevel,
-isUnderworld: isUnderworld,
-player: {
-hp: 100,
-maxHp: 100,
-hasKey: false,
-hasUnicornKey: false,
-wood: 0,
-stone: 0,
-gems: 0,
-herbs: 0,
-arrows: 0,
-inventory: ['unarmed'],
-equippedWeapon: 'unarmed',
-pos: {
-x: Math.floor(WORLD_SIZE.cols / 2),
-y: Math.floor(WORLD_SIZE.rows / 2)
-},
-pixelPos: {
-x: 0,
-y: 0
-},
-},
-world: [],
-monsters: [],
-npcs: [],
-resources: [],
-time: 0,
-timeOfDay: 'day',
-isGameOver: false,
-isFighting: false,
-activeFighter: null,
-monsterAttackInterval: null,
-playerStatusBar: null,
-activeProjectiles: [],
-};
-if (oldPlayer) {
-gameState.player.strength = oldPlayer.strength;
-gameState.player.xp = oldPlayer.xp;
-gameState.player.xpForNextStrength = oldPlayer.xpForNextStrength;
-gameState.player.inventory = oldPlayer.inventory || ['unarmed'];
-gameState.player.equippedWeapon = oldPlayer.equippedWeapon || 'unarmed';
-gameState.player.wood = oldPlayer.wood;
-gameState.player.stone = oldPlayer.stone;
-gameState.player.gems = oldPlayer.gems;
-gameState.player.herbs = oldPlayer.herbs;
-gameState.player.arrows = oldPlayer.arrows;
-} else {
-gameState.player.strength = 5;
-gameState.player.xp = 0;
-gameState.player.xpForNextStrength = 20;
-}
-gameState.levelConfig = {
-shelterWoodCost: BASE_SHELTER_WOOD_COST + SHELTER_COST_WOOD_PER_LEVEL * (gameState.level - 1),
-shelterHPCost: BASE_SHELTER_HP_COST + SHELTER_COST_HP_PER_LEVEL * (gameState.level - 1),
-crossbowWoodCost: BASE_CROSSBOW_WOOD_COST + CROSSBOW_COST_WOOD_PER_LEVEL * (gameState.level - 1),
-crossbowHPCost: BASE_CROSSBOW_HP_COST + CROSSBOW_COST_HP_PER_LEVEL * (gameState.level - 1),
-};
-if (currentLevel === 20) {
-generateUnicornLevel();
-} else if (isUnderworld) {
-generateUnderworld();
-} else {
-generateRealisticWorld();
-}
-const startPos = gameState.player.pos;
-gameState.player.pixelPos = {
-x: startPos.x * cellSize + cellSize / 2,
-y: startPos.y * cellSize + cellSize / 2,
-};
-createWorldElements();
-updateVisibleCells(true);
-render();
-updateHUD();
-gameLoopInterval = setInterval(gameTick, 1000);
-lastFrameTime = performance.now();
-mainGameLoopId = requestAnimationFrame(mainGameLoop);
-}
+
+
+
 function saveGame() {
 if (gameState.isFighting) {
 showMessage("Cannot save during combat!");
@@ -1524,135 +1607,158 @@ console.error('Failed to save game:', error);
 showMessage("Error: Could not save the game.");
 }
 }
+
+
 function loadGame() {
-const savedData = localStorage.getItem('adventureGameSaveData');
-if (!savedData) return false;
-if (gameLoopInterval) clearInterval(gameLoopInterval);
-if (mainGameLoopId) cancelAnimationFrame(mainGameLoopId);
-try {
-gameState = JSON.parse(savedData);
-gameState.player.inventory = gameState.player.inventory || ['unarmed'];
-gameState.player.equippedWeapon = gameState.player.equippedWeapon || 'unarmed';
-gameState.player.stone = gameState.player.stone || 0;
-gameState.player.gems = gameState.player.gems || 0;
-gameState.player.herbs = gameState.player.herbs || 0;
-gameState.player.arrows = gameState.player.arrows || 0;
-gameState.player.hasUnicornKey = gameState.player.hasUnicornKey || false;
-gameState.npcs = gameState.npcs || [];
-if (gameState.player.xp === undefined) gameState.player.xp = 0;
-if (gameState.player.xpForNextStrength === undefined) {
-let xpNeeded = 20;
-if (gameState.player.strength > 5) {
-for (let i = 5; i < gameState.player.strength; i++) {
-xpNeeded = Math.floor(xpNeeded * 1.5);
-}
-}
-gameState.player.xpForNextStrength = xpNeeded;
-}
+    const savedData = localStorage.getItem('adventureGameSaveData');
+    if (!savedData) return false;
+    if (gameLoopInterval) clearInterval(gameLoopInterval);
+    if (mainGameLoopId) cancelAnimationFrame(mainGameLoopId);
 
-gameState.player.pixelPos = {
-x: gameState.player.pos.x * cellSize + cellSize / 2,
-y: gameState.player.pos.y * cellSize + cellSize / 2
-};
+    // --- Rydd opp i ALLE lyder før lasting ---
+    audioManager.stopAmbiance('wind_ambiance');
+    audioManager.stopBirdSounds();
+    audioManager.stopNightSounds();
+    // --- Slutt på opprydding ---
 
-const entitiesToUpdate = [...(gameState.monsters || []), ...(gameState.npcs || [])];
-entitiesToUpdate.forEach((m) => {
-m.pixelPos = {
-x: m.x * cellSize + cellSize / 2,
-y: m.y * cellSize + cellSize / 2
-};
-m.targetPixelPos = {
-...m.pixelPos
-};
-});
+    try {
+        gameState = JSON.parse(savedData);
+        gameState.player.inventory = gameState.player.inventory || ['unarmed'];
+        gameState.player.equippedWeapon = gameState.player.equippedWeapon || 'unarmed';
+        gameState.player.stone = gameState.player.stone || 0;
+        gameState.player.gems = gameState.player.gems || 0;
+        gameState.player.herbs = gameState.player.herbs || 0;
+        gameState.player.arrows = gameState.player.arrows || 0;
+        gameState.player.hasUnicornKey = gameState.player.hasUnicornKey || false;
+        gameState.npcs = gameState.npcs || [];
+        if (gameState.player.xp === undefined) gameState.player.xp = 0;
+        if (gameState.player.xpForNextStrength === undefined) {
+            let xpNeeded = 20;
+            if (gameState.player.strength > 5) {
+                for (let i = 5; i < gameState.player.strength; i++) {
+                    xpNeeded = Math.floor(xpNeeded * 1.5);
+                }
+            }
+            gameState.player.xpForNextStrength = xpNeeded;
+        }
 
-gameState.isUnderworld = gameState.level % 5 === 0 && gameState.level < 20;
-gameContainer.style.backgroundColor = gameState.level === 20 ? '#1a001a' : (gameState.isUnderworld ? '#2d2d3a' : '#2E7D32');
-if (gameState.isUnderworld) {
-initRainEffect(100);
-} else {
-stopRainEffect();
-}
-gameState.levelConfig = {
-shelterWoodCost: BASE_SHELTER_WOOD_COST + SHELTER_COST_WOOD_PER_LEVEL * (gameState.level - 1),
-shelterHPCost: BASE_SHELTER_HP_COST + SHELTER_COST_HP_PER_LEVEL * (gameState.level - 1),
-crossbowWoodCost: BASE_CROSSBOW_WOOD_COST + CROSSBOW_COST_WOOD_PER_LEVEL * (gameState.level - 1),
-crossbowHPCost: BASE_CROSSBOW_HP_COST + CROSSBOW_COST_HP_PER_LEVEL * (gameState.level - 1),
-};
-gameState.time = gameState.time || 0;
-gameState.timeOfDay = gameState.timeOfDay || 'day';
-gameState.isFighting = false;
-gameState.activeFighter = null;
-gameState.monsterAttackInterval = null;
-gameState.isGameOver = false;
-gameState.playerStatusBar = null;
-gameState.activeProjectiles = [];
-createWorldElements();
-updateVisibleCells(true);
-render();
-updateHUD();
-if (gameState.timeOfDay === 'night') {
-nightOverlay.classList.add('is-night');
-} else {
-nightOverlay.classList.remove('is-night');
-}
+        gameState.player.pixelPos = {
+            x: gameState.player.pos.x * cellSize + cellSize / 2,
+            y: gameState.player.pos.y * cellSize + cellSize / 2
+        };
 
-if (gameState.timeOfDay === 'day' && !gameState.isUnderworld && gameState.level !== 20) {
+        const entitiesToUpdate = [...(gameState.monsters || []), ...(gameState.npcs || [])];
+        entitiesToUpdate.forEach((m) => {
+            m.pixelPos = {
+                x: m.x * cellSize + cellSize / 2,
+                y: m.y * cellSize + cellSize / 2
+            };
+            m.targetPixelPos = {
+                ...m.pixelPos
+            };
+        });
 
+        gameState.isUnderworld = gameState.level % 5 === 0 && gameState.level < 20;
+        gameContainer.style.backgroundColor = gameState.level === 20 ? '#1a001a' : (gameState.isUnderworld ? '#2d2d3a' : '#2E7D32');
+        if (gameState.isUnderworld) {
+            initRainEffect(100);
+        } else {
+            stopRainEffect();
+        }
+        gameState.levelConfig = {
+            shelterWoodCost: BASE_SHELTER_WOOD_COST + SHELTER_COST_WOOD_PER_LEVEL * (gameState.level - 1),
+            shelterHPCost: BASE_SHELTER_HP_COST + SHELTER_COST_HP_PER_LEVEL * (gameState.level - 1),
+            crossbowWoodCost: BASE_CROSSBOW_WOOD_COST + CROSSBOW_COST_WOOD_PER_LEVEL * (gameState.level - 1),
+            crossbowHPCost: BASE_CROSSBOW_HP_COST + CROSSBOW_COST_HP_PER_LEVEL * (gameState.level - 1),
+        };
+        gameState.time = gameState.time || 0;
+        gameState.timeOfDay = gameState.timeOfDay || 'day';
+        gameState.isFighting = false;
+        gameState.activeFighter = null;
+        gameState.monsterAttackInterval = null;
+        gameState.isGameOver = false;
+        gameState.playerStatusBar = null;
+        gameState.activeProjectiles = [];
+        createWorldElements();
+        updateVisibleCells(true);
+        render();
+        updateHUD();
 
+        // --- Oppdatert lyd-logikk for lasting ---
+        if (gameState.timeOfDay === 'night') {
+            nightOverlay.classList.add('is-night');
+            if (!gameState.isUnderworld && gameState.level !== 20) {
+                audioManager.startNightSounds();
+            }
+        } else { // Det er dag
+            nightOverlay.classList.remove('is-night');
+            if (!gameState.isUnderworld && gameState.level !== 20) {
+                audioManager.startAmbiance('wind_ambiance');
+                audioManager.startBirdSounds();
+            }
+        }
+        // --- Slutt på oppdatert lyd-logikk ---
 
-
-audioManager.startAmbiance('wind_ambiance');
-audioManager.startBirdSounds();
-
-
-
-
+        gameLoopInterval = setInterval(gameTick, 1000);
+        lastFrameTime = performance.now();
+        mainGameLoopId = requestAnimationFrame(mainGameLoop);
+        showMessage("Game Loaded!");
+        return true;
+    } catch (error) {
+        console.error('Failed to load game:', error);
+        localStorage.removeItem('adventureGameSaveData');
+        return false;
     }
+}
 
-gameLoopInterval = setInterval(gameTick, 1000);
-lastFrameTime = performance.now();
-mainGameLoopId = requestAnimationFrame(mainGameLoop);
-showMessage("Game Loaded!");
-return true;
-} catch (error) {
-console.error('Failed to load game:', error);
-localStorage.removeItem('adventureGameSaveData');
-return false;
-}
-}
+
+
 function levelUp() {
 showMessage(`Congratulations! You reached level ${gameState.level + 1}! The challenges grow tougher...`, setupNewGame);
 }
+
+
+
 function gameOver() {
-gameState.isGameOver = true;
+    gameState.isGameOver = true;
 
-audioManager.stopAmbiance('wind_ambiance');
-audioManager.stopBirdSounds();
+    // Rydd opp i alle lyder
+    audioManager.stopAmbiance('wind_ambiance');
+    audioManager.stopBirdSounds();
+    audioManager.stopNightSounds();
 
-clearInterval(gameLoopInterval);
-cancelAnimationFrame(mainGameLoopId);
-showMessage("GAME OVER 💀<br>Loading last save...", () => {
-if (!loadGame()) {
-window.location.reload();
+    clearInterval(gameLoopInterval);
+    cancelAnimationFrame(mainGameLoopId);
+    showMessage("GAME OVER 💀<br>Loading last save...", () => {
+        if (!loadGame()) {
+            window.location.reload();
+        }
+    });
 }
-});
-}
+
+
+
 function gameWon() {
-gameState.isGameOver = true;
+    gameState.isGameOver = true;
 
-audioManager.stopAmbiance('wind_ambiance');
-audioManager.stopBirdSounds();
+    // Rydd opp i alle lyder
+    audioManager.stopAmbiance('wind_ambiance');
+    audioManager.stopBirdSounds();
+    audioManager.stopNightSounds();
 
-clearInterval(gameLoopInterval);
-cancelAnimationFrame(mainGameLoopId);
-localStorage.removeItem('adventureGameSaveData');
-const winContent = `<h2>🎉 VICTORY! 🎉</h2><p>You have defeated the great dragon and used its key to free the mystical Unicorn!<br><br>The land is safe once more, thanks to your courage. You are a true hero!</p>`;
-showMessage(winContent, null, [{
-text: "Play Again",
-action: () => window.location.reload()
-}]);
+    clearInterval(gameLoopInterval);
+    cancelAnimationFrame(mainGameLoopId);
+    localStorage.removeItem('adventureGameSaveData');
+    const winContent = `<h2>🎉 VICTORY! 🎉</h2><p>You have defeated the great dragon and used its key to free the mystical Unicorn!<br><br>The land is safe once more, thanks to your courage. You are a true hero!</p>`;
+    showMessage(winContent, null, [{
+        text: "Play Again",
+        action: () => window.location.reload()
+    }]);
 }
+
+
+
+
 function findValidSpotNear(targetPos, searchRadius = 5) {
 const pathTile = gameState.isUnderworld ? TILE.UW_PATH : TILE.PATH;
 for (let r = 1; r <= searchRadius; r++) {
@@ -3233,41 +3339,55 @@ if (gameState.monsters.some((m) => !m.isDying && m.tile !== TILE.GHOST && m.tile
 if (gameState.npcs.some((n) => n.x === x && n.y === y)) return true;
 return false;
 }
+
+
 function updateTime() {
-if (gameState.level === 20) return;
-gameState.time++;
-const cycleDuration = DAY_DURATION + NIGHT_DURATION;
-const timeInCycle = gameState.time % cycleDuration;
-const wasDay = gameState.timeOfDay === 'day';
-if (wasDay && timeInCycle >= DAY_DURATION) {
-gameState.timeOfDay = 'night';
-nightOverlay.classList.add('is-night');
+    if (gameState.level === 20) return;
+    gameState.time++;
+    const cycleDuration = DAY_DURATION + NIGHT_DURATION;
+    const timeInCycle = gameState.time % cycleDuration;
+    const wasDay = gameState.timeOfDay === 'day';
 
-audioManager.stopAmbiance('wind_ambiance');
-audioManager.stopBirdSounds();
+    if (wasDay && timeInCycle >= DAY_DURATION) {
+        gameState.timeOfDay = 'night';
+        nightOverlay.classList.add('is-night');
 
-gameState.monsters.forEach((m) => {
-m.currentStrength = Math.floor(m.baseStrength * NIGHT_STRENGTH_BONUS);
-});
-spawnGhosts();
-} else if (!wasDay && timeInCycle < DAY_DURATION) {
-gameState.timeOfDay = 'day';
-nightOverlay.classList.remove('is-night');
-
-if (!gameState.isUnderworld) {
-
-audioManager.startAmbiance('wind_ambiance');
-audioManager.startBirdSounds();
-
+        // Stopp dag-lyder
+        audioManager.stopAmbiance('wind_ambiance');
+        audioManager.stopBirdSounds();
+        
+        // Start natt-lyder (hvis ikke i underverden)
+        if (!gameState.isUnderworld) {
+            audioManager.startNightSounds();
         }
 
-gameState.monsters.forEach((m) => {
-m.currentStrength = m.baseStrength;
-});
-despawnGhosts();
+        gameState.monsters.forEach((m) => {
+            m.currentStrength = Math.floor(m.baseStrength * NIGHT_STRENGTH_BONUS);
+        });
+        spawnGhosts();
+    } else if (!wasDay && timeInCycle < DAY_DURATION) {
+        gameState.timeOfDay = 'day';
+        nightOverlay.classList.remove('is-night');
+
+        // Stopp natt-lyder
+        audioManager.stopNightSounds();
+        
+        // Start dag-lyder (hvis ikke i underverden)
+        if (!gameState.isUnderworld) {
+            audioManager.startAmbiance('wind_ambiance');
+            audioManager.startBirdSounds();
+        }
+
+        gameState.monsters.forEach((m) => {
+            m.currentStrength = m.baseStrength;
+        });
+        despawnGhosts();
+    }
+    updateHUD();
 }
-updateHUD();
-}
+
+
+
 function spawnGhosts() {
 if (gameState.isFighting) return;
 const ghostCount = 2 + gameState.level;
