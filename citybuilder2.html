@@ -6,7 +6,15 @@
 <title>City Builder 2</title>
 <meta name="robots" content="noindex">
 <style>
-<style>html,
+html {
+box-sizing: border-box;
+}
+*,
+*::before,
+*::after {
+box-sizing: inherit;
+}
+html,
 body {
 margin: 0;
 padding: 0;
@@ -49,20 +57,16 @@ border-radius: 8px;
 position: relative;
 }
 #ui-panel {
-font-family: sans-serif;
-color: #fff;
 width: 280px;
 flex-shrink: 0;
 height: 100%;
 padding: 10px 15px;
 overflow-y: auto;
 border-right: 2px solid #444;
-box-sizing: border-box;
 }
 #stats p {
 margin: 5px 0;
 font-size: 14px;
-font-family: sans-serif;
 }
 #budget-details {
 padding-left: 10px;
@@ -83,7 +87,6 @@ position: relative;
 overflow: auto;
 cursor: default;
 border: 20px solid #282c34;
-box-sizing: border-box;
 }
 #grid-container {
 position: relative;
@@ -116,10 +119,8 @@ cursor: pointer;
 font-weight: bold;
 font-size: 14px;
 border: 1px solid #777;
-box-sizing: border-box;
 text-decoration: none;
 transition: background-color 0.2s, border-color 0.2s, color 0.2s;
-font-family: sans-serif;
 }
 .tool-btn-grid {
 display: grid;
@@ -172,29 +173,29 @@ margin-bottom: 10px;
 flex-grow: 1;
 }
 #save-btn {
-background-color: #4caf50 !important;
-color: white !important;
-border-color: #388e3c !important;
+background-color: #4caf50;
+color: white;
+border-color: #388e3c;
 }
 #city-log-btn {
-background-color: #ff9800 !important;
-color: white !important;
-border-color: #f57c00 !important;
+background-color: #ff9800;
+color: white;
+border-color: #f57c00;
 }
 #how-to-play-btn {
-background-color: #03a9f4 !important;
-color: white !important;
-border-color: #0288d1 !important;
+background-color: #03a9f4;
+color: white;
+border-color: #0288d1;
 }
 #economy-btn {
-background-color: #673ab7 !important;
-color: white !important;
-border-color: #512da8 !important;
+background-color: #673ab7;
+color: white;
+border-color: #512da8;
 }
 #new-game-btn {
-background-color: #f44336 !important;
-color: white !important;
-border-color: #d32f2f !important;
+background-color: #f44336;
+color: white;
+border-color: #d32f2f;
 }
 .control-btn {
 background-color: #555;
@@ -276,7 +277,6 @@ left: 0;
 border: 1px solid #fff;
 background-color: rgba(255, 255, 255, 0.3);
 pointer-events: none;
-box-sizing: border-box;
 }
 #tooltip {
 position: fixed;
@@ -315,7 +315,6 @@ height: 100%;
 background-color: rgba(0, 0, 0, 0.75);
 justify-content: center;
 align-items: center;
-font-family: sans-serif;
 }
 .modal.active {
 display: flex;
@@ -1957,24 +1956,20 @@ mapContainer.scrollTop = targetScrollTop;
 updateMinimapViewport();
 }
 function setupEventListeners() {
-const canvasEl = document.getElementById('game-canvas');
-const mapContainerEl = document.getElementById('map-container');
+if (canvas) {
+canvas.addEventListener('click', onCanvasClick);
+canvas.addEventListener('mousemove', onCanvasMouseOver);
+canvas.addEventListener('mouseout', onCanvasMouseOut);
+}
+if (mapContainer) {
+mapContainer.addEventListener('scroll', updateMinimapViewport);
+}
 const minimapWrapperEl = document.getElementById('minimap-wrapper');
 const nightModeBtn = document.getElementById('night-mode-btn');
-const saveBtnEl = document.getElementById('save-btn');
-const newGameBtnEl = document.getElementById('new-game-btn');
 const cityLogBtn = document.getElementById('city-log-btn');
 const howToPlayBtn = document.getElementById('how-to-play-btn');
 const economyBtn = document.getElementById('economy-btn');
 const economyModalCloseBtn = document.getElementById('economy-modal-close');
-if (canvasEl) {
-canvasEl.addEventListener('click', onCanvasClick);
-canvasEl.addEventListener('mousemove', onCanvasMouseOver);
-canvasEl.addEventListener('mouseout', onCanvasMouseOut);
-}
-if (mapContainerEl) {
-mapContainerEl.addEventListener('scroll', updateMinimapViewport);
-}
 if (minimapWrapperEl) {
 minimapWrapperEl.addEventListener('mousedown', (e) => {
 gameState.isDraggingMinimap = true;
@@ -1997,8 +1992,8 @@ btn.addEventListener('click', (e) => {
 document.querySelectorAll('.tool-btn').forEach((b) => b.classList.remove('active'));
 e.currentTarget.classList.add('active');
 gameState.currentTool = btn.dataset.tool;
-if (canvasEl) {
-canvasEl.className = btn.dataset.tool === 'bulldoze' ? 'bulldoze-cursor' : 'build-cursor';
+if (canvas) {
+canvas.className = btn.dataset.tool === 'bulldoze' ? 'bulldoze-cursor' : 'build-cursor';
 }
 });
 });
@@ -2012,12 +2007,11 @@ showTickerMessage(`Taxes set to ${e.currentTarget.textContent.trim()}.`);
 });
 if (nightModeBtn) {
 nightModeBtn.addEventListener('click', () => {
-const layout = document.getElementById('game-layout');
-if (layout) layout.classList.toggle('night-mode');
+if (gameLayout) gameLayout.classList.toggle('night-mode');
 });
 }
-if (saveBtnEl) saveBtnEl.addEventListener('click', saveGame);
-if (newGameBtnEl) newGameBtnEl.addEventListener('click', newGame);
+if (saveBtn) saveBtn.addEventListener('click', saveGame);
+if (newGameBtn) newGameBtn.addEventListener('click', newGame);
 if (cityLogBtn) cityLogBtn.addEventListener('click', () => showLog(gameState.gameLog));
 if (howToPlayBtn) howToPlayBtn.addEventListener('click', showHelp);
 if (economyBtn) economyBtn.addEventListener('click', showEconomyWindow);
