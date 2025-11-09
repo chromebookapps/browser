@@ -685,21 +685,17 @@ this.updateLineNumbers();
 this.highlight();
 }
 },
-
 handleGlobalKeyDown(e) {
 const isModalOpen = this.elements.helpModal.style.display === 'block' || this.elements.searchModal.style.display === 'block';
 const isCtrl = e.ctrlKey || e.metaKey;
 const key = e.key.toLowerCase();
-
 if (isCtrl && key === 's') {
 e.preventDefault();
 this.saveFile();
 return;
 }
-
 if (e.altKey && key === 'h') { e.preventDefault(); this.toggleModal('help'); }
 if (e.altKey && key === 'f') { e.preventDefault(); this.toggleModal('search'); }
-
 if (isCtrl) {
 if (key === 'o') { e.preventDefault(); this.openFile(); }
 if (e.shiftKey) {
@@ -711,11 +707,10 @@ if (e.code === 'Digit3') { e.preventDefault(); this.jumpToSection('body'); }
 if (key === 'n') { e.preventDefault(); this.newFile(); }
 if (key === 'w') { e.preventDefault(); this.checkWhitespace(); }
 if (key === 'l') { e.preventDefault(); this.removeEmptyLines(); }
-if (key === 'p') { e.preventDefault(); this.previewInNewTab(); } // <--- FIKSET!
+if (key === 'p') { e.preventDefault(); this.previewInNewTab(); }
 if (key === 't') { e.preventDefault(); window.open(window.location.href, '_blank'); }
 if (key === 'i') { e.preventDefault(); this.toggleLineNumbers(); }
 }
-
 if (isModalOpen) {
 if (key === 'escape') {
 e.preventDefault();
@@ -725,7 +720,6 @@ if (this.elements.helpModal.style.display === 'block') this.toggleModal('help');
 return;
 }
 },
-
 handleBeforeUnload(e) {
 if (this.state.hasUnsavedChanges) {
 e.preventDefault();
