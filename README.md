@@ -1,6 +1,6 @@
-# Browser Apps for Chromebook Users
+# Browser Apps for PC Users
 
-To **see** an updated list with direct links [Click here](https://chromebookapps.github.io/)
+To **see** an updated list with direct links [Click here](https://heggelundjohnny.github.io/apps/)
 
 ---
 
