@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Adventure</title>
-<meta name="robots" content="noindex">
-<script src="/stats/tracker.js" defer></script>
 <style>
 body,
 html {
@@ -551,7 +549,6 @@ p {
 text-align: center;
 margin: 0 0 20px 0;
 }
-
 .sticky-link {
 position: fixed;
 bottom: 15px;
@@ -582,15 +579,12 @@ box-shadow: 0 0 12px rgba(237, 231, 246, 0.6);
 box-shadow: 0 0 18px rgba(237, 231, 246, 0.9);
 }
 }
-
 </style>
 </head>
 <body>
-
 <a href="index.html" target="_blank" rel="noopener noreferrer" class="sticky-link">
 My App Collection
 </a>
-
 <div id="game-container">
 <div id="rain-container"></div>
 <div id="lightning-flash"></div>
@@ -689,83 +683,129 @@ osc.connect(gain).connect(dest);
 osc.start(ctx.currentTime);
 osc.stop(ctx.currentTime + 0.1);
 },
+
 'wind_ambiance': (ctx, dest) => {
-const bufferSize = 2 * ctx.sampleRate;
+const t = ctx.currentTime;
+const bufferSize = 5 * ctx.sampleRate;
 const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
 const output = buffer.getChannelData(0);
 for (let i = 0; i < bufferSize; i++) {
 output[i] = (Math.random() * 2 - 1) * 0.3;
-if (i > 0) output[i] = (output[i - 1] + (0.02 * output[i])) / 1.02;
+}
+const fadeLength = Math.floor(ctx.sampleRate * 0.01);
+for (let i = 0; i < fadeLength; i++) {
+output[i] *= (i / fadeLength);
+output[bufferSize - 1 - i] *= (i / fadeLength);
 }
 const noiseNode = ctx.createBufferSource();
 noiseNode.buffer = buffer;
 noiseNode.loop = true;
 const filter = ctx.createBiquadFilter();
 filter.type = 'lowpass';
-filter.frequency.setValueAtTime(300, ctx.currentTime);
-filter.Q.setValueAtTime(1, ctx.currentTime);
-const lfo = ctx.createOscillator();
-lfo.type = 'sine';
-lfo.frequency.setValueAtTime(0.1, ctx.currentTime);
-const lfoGain = ctx.createGain();
-lfoGain.gain.setValueAtTime(150, ctx.currentTime);
-lfo.connect(lfoGain).connect(filter.frequency);
-noiseNode.connect(filter).connect(dest);
-lfo.start(ctx.currentTime);
-noiseNode.start(ctx.currentTime);
-return { lfo, noiseNode };
+filter.frequency.setValueAtTime(300, t);
+filter.Q.setValueAtTime(1, t);
+const lfoFilterSlow = ctx.createOscillator();
+lfoFilterSlow.type = 'sine';
+lfoFilterSlow.frequency.setValueAtTime(0.08, t);
+const lfoFilterSlowGain = ctx.createGain();
+lfoFilterSlowGain.gain.setValueAtTime(100, t);
+lfoFilterSlow.connect(lfoFilterSlowGain).connect(filter.frequency);
+const lfoFilterFast = ctx.createOscillator();
+lfoFilterFast.type = 'sine';
+lfoFilterFast.frequency.setValueAtTime(0.3, t);
+const lfoFilterFastGain = ctx.createGain();
+lfoFilterFastGain.gain.setValueAtTime(50, t);
+lfoFilterFast.connect(lfoFilterFastGain).connect(filter.frequency);
+const masterGain = ctx.createGain();
+masterGain.gain.setValueAtTime(0.8, t);
+const lfoVolume = ctx.createOscillator();
+lfoVolume.type = 'sine';
+lfoVolume.frequency.setValueAtTime(0.11, t);
+const lfoVolumeGain = ctx.createGain();
+lfoVolumeGain.gain.setValueAtTime(0.2, t);
+lfoVolume.connect(lfoVolumeGain).connect(masterGain.gain);
+noiseNode.connect(filter).connect(masterGain).connect(dest);
+lfoFilterSlow.start(t);
+lfoFilterFast.start(t);
+lfoVolume.start(t);
+noiseNode.start(t);
+return {
+lfo: lfoFilterSlow,
+lfoFilterSlow,
+lfoFilterFast,
+lfoVolume,
+noiseNode
+};
 },
+
 'bird_chirp_1': (ctx, dest) => {
 const t = ctx.currentTime;
-const osc = ctx.createOscillator();
-osc.type = 'triangle';
-osc.frequency.setValueAtTime(3500, t);
-osc.frequency.linearRampToValueAtTime(2800, t + 0.08);
 const gain = ctx.createGain();
 gain.gain.setValueAtTime(0, t);
 gain.gain.linearRampToValueAtTime(0.08, t + 0.01);
 gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
-osc.connect(gain).connect(dest);
-osc.start(t);
-osc.stop(t + 0.08);
+gain.connect(dest);
+const osc1 = ctx.createOscillator();
+osc1.type = 'triangle';
+osc1.frequency.setValueAtTime(3500, t);
+osc1.frequency.linearRampToValueAtTime(2800, t + 0.08);
+const osc2 = ctx.createOscillator();
+osc2.type = 'sine';
+osc2.frequency.setValueAtTime(3520, t);
+osc2.frequency.linearRampToValueAtTime(2820, t + 0.08);
+osc1.connect(gain);
+osc2.connect(gain);
+osc1.start(t);
+osc2.start(t);
+osc1.stop(t + 0.08);
+osc2.stop(t + 0.08);
 },
+
+
 'bird_chirp_2': (ctx, dest) => {
 const t = ctx.currentTime;
 const osc = ctx.createOscillator();
-osc.type = 'sine';
+osc.type = 'triangle';
 osc.frequency.setValueAtTime(3000, t);
-osc.frequency.linearRampToValueAtTime(3300, t + 0.05);
-osc.frequency.linearRampToValueAtTime(3100, t + 0.06);
-osc.frequency.linearRampToValueAtTime(3400, t + 0.1);
+osc.frequency.linearRampToValueAtTime(3800, t + 0.04);
+osc.frequency.linearRampToValueAtTime(3200, t + 0.08);
+osc.frequency.linearRampToValueAtTime(3900, t + 0.12);
 const gain = ctx.createGain();
 gain.gain.setValueAtTime(0, t);
 gain.gain.linearRampToValueAtTime(0.07, t + 0.01);
-gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+gain.gain.exponentialRampToValueAtTime(0.001, t + 0.42);
 osc.connect(gain).connect(dest);
 osc.start(t);
-osc.stop(t + 0.1);
+osc.stop(t + 0.12);
 },
+
+
 'bird_chirp_3': (ctx, dest) => {
 const t = ctx.currentTime;
+const totalDuration = 0.5;
 const osc = ctx.createOscillator();
 osc.type = 'triangle';
 osc.frequency.setValueAtTime(4000, t);
+osc.frequency.linearRampToValueAtTime(3500, t + totalDuration);
 const lfo = ctx.createOscillator();
 lfo.type = 'sine';
 lfo.frequency.setValueAtTime(30, t);
+lfo.frequency.linearRampToValueAtTime(20, t + totalDuration);
 const lfoGain = ctx.createGain();
 lfoGain.gain.setValueAtTime(100, t);
 lfo.connect(lfoGain).connect(osc.frequency);
 const gain = ctx.createGain();
 gain.gain.setValueAtTime(0, t);
 gain.gain.linearRampToValueAtTime(0.06, t + 0.02);
-gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+gain.gain.exponentialRampToValueAtTime(0.001, t + totalDuration);
 osc.connect(gain).connect(dest);
 lfo.start(t);
 osc.start(t);
-lfo.stop(t + 0.15);
-osc.stop(t + 0.15);
+lfo.stop(t + totalDuration);
+osc.stop(t + totalDuration);
 },
+
+
 'player_attack_unarmed': (ctx, dest) => {
 const t = ctx.currentTime;
 const osc = ctx.createOscillator();
