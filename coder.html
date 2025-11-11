@@ -34,7 +34,7 @@ width: 100vw;
 }
 #line-numbers {
 width: 50px;
-padding: 15px 5px 15px 15px;
+padding: 15px 5px 100px 15px;
 box-sizing: border-box;
 text-align: right;
 color: var(--border-color);
@@ -77,7 +77,7 @@ white-space: pre;
 overflow-wrap: normal;
 font-family: var(--font-mono);
 font-size: var(--font-size);
-padding: 15px;
+padding: 15px 15px 100px 15px;
 line-height: 1.5;
 margin: 0;
 background-color: transparent;
@@ -273,7 +273,7 @@ debouncedUpdateLineNumbers: null,
 lang: {
 title: "Coder",
 untitled: "Untitled",
-mainTitle: "Chromebook Code Editor for HTML CSS JS",
+mainTitle: "Code Editor for HTML CSS JS",
 helpTitle: "Shortcuts",
 helpOpenFile: "Open File",
 helpSaveFile: "Save File",
@@ -357,13 +357,32 @@ editor.focus();
 }
 });
 },
+
+
 handleEditorScroll() {
-const scrollTop = this.elements.editor.scrollTop;
-const scrollLeft = this.elements.editor.scrollLeft;
-this.elements.lineNumbers.scrollTop = scrollTop;
-this.elements.highlightLayer.scrollTop = scrollTop;
-this.elements.highlightLayer.scrollLeft = scrollLeft;
+  const editor = this.elements.editor;
+  const lineNumbers = this.elements.lineNumbers;
+
+  // 1. Regn ut hvor langt linjenumrene maksimalt kan scrolle
+  // (Dette blir vår "stopp-grense")
+  const maxLineNumberScroll = lineNumbers.scrollHeight - lineNumbers.clientHeight;
+
+  // 2. Hvis editoren prøver å scrolle forbi grensen til linjenumrene...
+  if (editor.scrollTop > maxLineNumberScroll) {
+    // ...så tvinger vi editoren tilbake til grensen.
+    editor.scrollTop = maxLineNumberScroll;
+  }
+
+  // 3. Synkroniser posisjonene (nå som vi vet at de er innenfor grensen)
+  const scrollTop = editor.scrollTop;
+  const scrollLeft = editor.scrollLeft;
+  
+  lineNumbers.scrollTop = scrollTop;
+  this.elements.highlightLayer.scrollTop = scrollTop;
+  this.elements.highlightLayer.scrollLeft = scrollLeft;
 },
+
+
 highlight() {
 const val = this.elements.editor.value;
 let hlText = val.replace(/[ \t]+$/gm, (match) => {
