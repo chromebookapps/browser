@@ -5,12 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Adventure</title>
 <style>
+@font-face {
+font-family: 'NotoEmoji';
+src: url('NotoColorEmoji-Regular.ttf') format('truetype');
+}
 body,
 html {
 margin: 0;
 padding: 0;
 overflow: hidden;
-font-family: sans-serif;
+font-family: sans-serif, 'NotoEmoji';
 background-color: #1a1a1a;
 display: flex;
 flex-direction: column;
@@ -428,7 +432,7 @@ box-shadow: inset 0 0 0 2px #1a1a1a, 0 8px 20px rgba(0, 0, 0, 0.6);
 padding: 25px 35px;
 border-radius: 10px;
 width: 80vw;
-max-width: 900px;
+max-width: 1200px;
 max-height: 85vh;
 overflow-y: auto;
 display: flex;
