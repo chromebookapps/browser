@@ -357,32 +357,19 @@ editor.focus();
 }
 });
 },
-
-
 handleEditorScroll() {
-  const editor = this.elements.editor;
-  const lineNumbers = this.elements.lineNumbers;
-
-  // 1. Regn ut hvor langt linjenumrene maksimalt kan scrolle
-  // (Dette blir vår "stopp-grense")
-  const maxLineNumberScroll = lineNumbers.scrollHeight - lineNumbers.clientHeight;
-
-  // 2. Hvis editoren prøver å scrolle forbi grensen til linjenumrene...
-  if (editor.scrollTop > maxLineNumberScroll) {
-    // ...så tvinger vi editoren tilbake til grensen.
-    editor.scrollTop = maxLineNumberScroll;
-  }
-
-  // 3. Synkroniser posisjonene (nå som vi vet at de er innenfor grensen)
-  const scrollTop = editor.scrollTop;
-  const scrollLeft = editor.scrollLeft;
-  
-  lineNumbers.scrollTop = scrollTop;
-  this.elements.highlightLayer.scrollTop = scrollTop;
-  this.elements.highlightLayer.scrollLeft = scrollLeft;
+const editor = this.elements.editor;
+const lineNumbers = this.elements.lineNumbers;
+const maxLineNumberScroll = lineNumbers.scrollHeight - lineNumbers.clientHeight;
+if (editor.scrollTop > maxLineNumberScroll) {
+editor.scrollTop = maxLineNumberScroll;
+}
+const scrollTop = editor.scrollTop;
+const scrollLeft = editor.scrollLeft;
+lineNumbers.scrollTop = scrollTop;
+this.elements.highlightLayer.scrollTop = scrollTop;
+this.elements.highlightLayer.scrollLeft = scrollLeft;
 },
-
-
 highlight() {
 const val = this.elements.editor.value;
 let hlText = val.replace(/[ \t]+$/gm, (match) => {
