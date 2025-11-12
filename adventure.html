@@ -445,6 +445,7 @@ flex-grow: 1;
 #message-text h3 {
 text-align: center;
 color: #7E57C2;
+margin: 0;
 }
 .how-to-play-columns {
 display: flex;
@@ -481,8 +482,8 @@ width: 100%;
 #message-options {
 display: flex;
 justify-content: center;
-gap: 15px;
-margin-top: 20px;
+gap: 5px;
+margin-top: 0;
 flex-shrink: 0;
 }
 .message-option-button {
@@ -538,16 +539,6 @@ background: #7E57C2;
 * {
 scrollbar-width: thin;
 scrollbar-color: #512DA8 #2a2135;
-}
-h1 {
-text-align: center;
-margin-top: 4px;
-margin-bottom: 4px;
-font-size: 1.6rem;
-}
-p {
-text-align: center;
-margin: 0 0 20px 0;
 }
 </style>
 </head>
@@ -1570,8 +1561,6 @@ processMessageQueue();
 function showHowToPlay() {
 const costs = gameState.levelConfig;
 const instructions = `
-<h1>Chromebook Emoji Adventure</h1>
-<p>&copy;2025 Johnny Heggelund</p>
 <h2 class="how-to-play-title">📜 How to Play (Level ${gameState.level}) 📜</h2>
 <div class="how-to-play-columns">
 <div class="how-to-play-column">
