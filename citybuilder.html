@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chromebook City Builder</title>
+<title>City Builder</title>
 <style>
 html {
 box-sizing: border-box;
@@ -511,19 +511,6 @@ background: #0056b3;
 scrollbar-width: thin;
 scrollbar-color: #007bff #2c2c2c;
 }
-#my-apps-link {
-background-color: #8e44ad;
-color: white;
-border-color: #793694;
-text-align: center;
-width: 100%;
-display: block;
-margin-top: 5px;
-}
-#my-apps-link:hover {
-background-color: #9b59b6;
-border-color: #8e44ad;
-}
 </style>
 </head>
 <body>
@@ -581,9 +568,6 @@ border-color: #8e44ad;
 <button id="how-to-play-btn" class="action-btn" title="Help">❓ Help</button>
 <button id="new-game-btn" class="action-btn" title="Start a New City">✨ New Game</button>
 </div>
-<a href="index.html" target="_blank" rel="noopener noreferrer" class="action-btn" id="my-apps-link">
-My App Collection
-</a>
 </div>
 <div id="map-container">
 <div id="grid-container">
@@ -1172,7 +1156,7 @@ if (!modal) return;
 const modalContent = modal.querySelector('.modal-content');
 if (!modalContent) return;
 modalContent.innerHTML = `<span class="modal-close">&times;</span>
-<h2>How to Play Chromebook City Builder</h2>
+<h2>How to Play City Builder</h2>
 <p>Welcome, Mayor! Your main goal is to build a thriving metropolis and reach a population of <strong>${config.WIN_CONDITION_POPULATION.toLocaleString()}</strong> residents. But be careful – if your city's budget drops below zero, you'll go bankrupt and the game is over!</p>
 <h4>The Basics 💵</h4>
 <ul>
@@ -1196,7 +1180,7 @@ modalContent.innerHTML = `<span class="modal-close">&times;</span>
 </ul>
 <h4>Disasters & Challenges 🔥</h4>
 <p>Keep an eye on the event ticker! Disasters like <strong>Fires (🔥)</strong>, <strong>Recessions (📉)</strong>, and even <strong>King Kong (🦍)</strong> can strike your city.</p>
-<p style="text-align: center; margin-top: 20px;"><strong>Good luck, Mayor!</strong> &copy;2025 Johnny Heggelund</p>`;
+<p style="text-align: center; margin-top: 20px;"><strong>Good luck, Mayor!</strong></p>`;
 const closeButton = modalContent.querySelector('.modal-close');
 if (closeButton) {
 closeButton.onclick = () => { modal.style.display = 'none'; };
