@@ -24,7 +24,7 @@ justify-content: center;
 align-items: center;
 width: 100%;
 height: auto;
-background-color: #2E7D32;
+background-color: #245E28;
 position: relative;
 overflow: hidden;
 transition: background-color 2s ease-in-out;
@@ -191,7 +191,6 @@ transform-origin: center center;
 user-select: none;
 -webkit-tap-highlight-color: transparent;
 background-color: transparent;
-text-shadow: 0 2px 6px #000, 0 0px 1px #222;
 }
 .fighting-monster .monster-sprite {
 cursor: crosshair;
@@ -1612,7 +1611,7 @@ audioManager.stopAmbiance('ambiance_rain');
 const oldPlayer = gameState.player;
 const currentLevel = gameState.level ? gameState.level + 1 : 1;
 const isUnderworld = currentLevel % 5 === 0 && currentLevel < 20;
-gameContainer.style.backgroundColor = isUnderworld ? '#2d2d3a' : '#2E7D32';
+gameContainer.style.backgroundColor = isUnderworld ? '#2d2d3a' : '#245E28';
 if (isUnderworld) {
 initRainEffect(100);
 } else {
@@ -1763,7 +1762,7 @@ m.targetPixelPos = {
 };
 });
 gameState.isUnderworld = gameState.level % 5 === 0 && gameState.level < 20;
-gameContainer.style.backgroundColor = gameState.level === 20 ? '#1a001a' : (gameState.isUnderworld ? '#2d2d3a' : '#2E7D32');
+gameContainer.style.backgroundColor = gameState.level === 20 ? '#1a001a' : (gameState.isUnderworld ? '#2d2d3a' : '#245E28');
 if (gameState.isUnderworld) {
 initRainEffect(100);
 } else {
